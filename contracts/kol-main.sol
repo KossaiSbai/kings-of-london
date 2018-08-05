@@ -1,0 +1,10 @@
+pragma solidity ^0.4.24; 
+
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+
+contract MyContract is Ownable {
+    constructor () public {
+        // constructor for contract
+    }
+    
+}
