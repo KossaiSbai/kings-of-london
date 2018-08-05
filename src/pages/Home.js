@@ -4,15 +4,14 @@ import { Button } from 'reactstrap';
 
 import NavBar from '../components/Navbar'
 
-class App extends Component {
+class Home extends Component {
   render() {
     return (
-      <div className="App">
+      <div className="Home">
         <NavBar/>
-        <Button>Test</Button>
       </div>
     );
   }
 }
 
-export default App;
+export default Home;
