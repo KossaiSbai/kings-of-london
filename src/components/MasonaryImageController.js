@@ -36,12 +36,8 @@ export default class MasonaryImageController extends React.Component {
       let adjustment = min_size;
       let image_grid_size = adjustment + Math.round(multiplier * image_scale);
 
-      console.log(image_grid_size + image)
-
       images[eid][2] = image_grid_size;
     }
-
-    console.log(images);
 
     // The code here makes sure the images take up a row
     let temp_row = [];
@@ -50,7 +46,7 @@ export default class MasonaryImageController extends React.Component {
       for(let eid2 in temp_row){
         count += temp_row[eid2];
       }
-      if(count == 16 || count == 0){
+      if(count + images[eid][2] >= 16 || count == 0){
         // Row is empty or full
         temp_row = [images[eid][2]];
       } else if(count + images[eid][2] <= 16) {
@@ -66,9 +62,6 @@ export default class MasonaryImageController extends React.Component {
 
     }
 
-
-    console.log(images);
-
     return ({
       images: images,
       min_scale: min_scale,
@@ -79,13 +72,15 @@ export default class MasonaryImageController extends React.Component {
   }
 
   images() {
-    let { min_scale, max_scale, images, min_size, max_size } = this.state;
+    let { images } = this.state;
+    let index = -1;
     return images.map((element) => {
       let image_location = element[0];
       let image_grid_size = element[2];
+      index+=1;
 
       return(
-        <Grid.Column key={image_location} width={image_grid_size}>
+        <Grid.Column key={index} width={image_grid_size}>
           <Image fluid src={image_location} />
         </Grid.Column>
       );
