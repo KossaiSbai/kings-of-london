@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Grid } from 'semantic-ui-react'
+import { Image, Grid } from 'semantic-ui-react';
 
 export default class MasonaryImageController extends React.Component {
 
@@ -15,6 +15,9 @@ export default class MasonaryImageController extends React.Component {
   }
 
   order_images(images){
+
+    // This orders the images array so that it is in a decending order based
+    // on the second element in each nested array
     images.sort((a, b) => {
       if (a[1] === b[1]) {
         return 0;
@@ -28,6 +31,7 @@ export default class MasonaryImageController extends React.Component {
     let min_size = 2;
     let max_size = 16;
 
+    // Scales the eth value of the image to an image size between min-16 int
     for(let eid in images){
       let image = images[eid];
 
@@ -40,6 +44,7 @@ export default class MasonaryImageController extends React.Component {
     }
 
     // The code here makes sure the images take up a row
+    // It scales the images so that we dont end up with weird layouts
     let temp_row = [];
     for(let eid in images){
       let count = 0;
