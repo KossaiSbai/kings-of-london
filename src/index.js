@@ -1,8 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './pages/App';
+import Home from './pages/Home';
 import registerServiceWorker from './registerServiceWorker';
 
-ReactDOM.render(<App />, document.getElementById('root'));
+import 'semantic-ui-css/semantic.min.css';
+
+ReactDOM.render(<Home />, document.getElementById('root'));
 registerServiceWorker();
