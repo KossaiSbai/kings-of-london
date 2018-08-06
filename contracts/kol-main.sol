@@ -10,9 +10,12 @@ import "../node_modules/openzeppelin-solidity/contracts/payment/PullPayment.sol"
 
 contract KOLogic is Ownable, PullPayment {
     
-    constructor (uint8 _blockCreationValue) public {
+    KOLstorage s;
+
+    constructor (uint8 _blockCreationValue, address storageContract) public {
         // constructor for contract
         blockCreationValue = _blockCreationValue;
+        s = storageContract;
     }
 
     // data structures needed for storage
@@ -43,7 +46,7 @@ contract KOLogic is Ownable, PullPayment {
         bytes32 blockID = getBlockID(_x, _y, _uniName);
 
         // if block doesn't exist yet
-        if(bytes(blocks[blockID]) == 0) {
+        if() {
             require(msg.value > blockCreationValue);
             createBlock(blockID);
             throw;
@@ -63,9 +66,6 @@ contract KOLogic is Ownable, PullPayment {
 
 contract KOLstorage {
 
-    /*
-    TODO: create modifiers to limit functions so only application contract can edit them
-    */
     constructor (address _appContract) public {
         // constructor for contract
         appContract = _appContract;
@@ -82,22 +82,29 @@ contract KOLstorage {
     
     mapping(bytes32 => Block) public blocks;
 
-    function newBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, uint256 _price) public returns (bool success) {
+    modifier onlyApplicationContract() {
+        require(msg.sender == appContract);
+        _;
+    }
+
+    function newBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, uint256 _price) public onlyApplicationContract returns (bool success) {
+        require(blocks[_blockID].isEntity == false);
         blocks[_blockID] = Block(_imageURL, _description, _blockOwner, false, _price, true);
         success = true;
     }
 
-    function updateBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, bool _forSale, uint256 _price) public returns (bool success) {
+    function updateBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, bool _forSale, uint256 _price) public onlyApplicationContract returns (bool success) {
+        require(blocks[_blockID].isEntity == true);
         blocks[_blockID] = Block(_imageURL, _description, _blockOwner, _forSale, _price, true);
         success = true;
     }
 
-    function deleteBlock(bytes32 _blockID) public returns (bool success) {
+    function deleteBlock(bytes32 _blockID) public onlyApplicationContract returns (bool success) {
         blocks[_blockID].isEntity = false;
         success = true;
     }
 
-    function isEntity(bytes32 _blockID) public view returns (bool isEntity) {
+    function isEntity(bytes32 _blockID) public onlyApplicationContract  view returns (bool isEntity) {
         isEntity = blocks[_blockID].isEntity;
     }
 
