@@ -48,28 +48,14 @@ contract KOLogic is Ownable, PullPayment {
         // if block doesn't exist yet
         if() {
             require(msg.value > blockCreationValue);
-            createBlock(blockID);
-            throw;
         } 
 
         require(blocks[blockID].forSale);
-        require(msg.value > blocks[blockID].price);
-
-        
-        
+        require(msg.value > blocks[blockID].price);  
     }
-
-    function createBlock(bytes32 _blockID) internal {
-        blocks[_blockID] = Block(0,0,msg.sender,false,0);
-    }    
 }
 
 contract KOLstorage {
-
-    constructor (address _appContract) public {
-        // constructor for contract
-        appContract = _appContract;
-    }
 
     struct Block{
         bytes32 imageURL;
@@ -79,32 +65,44 @@ contract KOLstorage {
         uint256 price;
         bool isEntity;
     }
+    mapping(bytes32 => Block) internal blocks;
     
-    mapping(bytes32 => Block) public blocks;
+    constructor () public {
+        owner = msg.sender;
+    }
 
-    modifier onlyApplicationContract() {
-        require(msg.sender == appContract);
+    address public owner;
+    event OwnershipTransfered(address indexed previousOwner, address indexed newOwner);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner);
         _;
     }
 
-    function newBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, uint256 _price) public onlyApplicationContract returns (bool success) {
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0));
+        OwnershipTransferred(owner, newOwner);
+        owner = newOwner;
+    }
+
+    function newBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, uint256 _price) public onlyOwner returns (bool success) {
         require(blocks[_blockID].isEntity == false);
         blocks[_blockID] = Block(_imageURL, _description, _blockOwner, false, _price, true);
         success = true;
     }
 
-    function updateBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, bool _forSale, uint256 _price) public onlyApplicationContract returns (bool success) {
+    function updateBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, bool _forSale, uint256 _price) public onlyOwner returns (bool success) {
         require(blocks[_blockID].isEntity == true);
         blocks[_blockID] = Block(_imageURL, _description, _blockOwner, _forSale, _price, true);
         success = true;
     }
 
-    function deleteBlock(bytes32 _blockID) public onlyApplicationContract returns (bool success) {
+    function deleteBlock(bytes32 _blockID) public onlyOwner returns (bool success) {
         blocks[_blockID].isEntity = false;
         success = true;
     }
 
-    function isEntity(bytes32 _blockID) public onlyApplicationContract  view returns (bool isEntity) {
+    function isEntity(bytes32 _blockID) public onlyOwner  view returns (bool isEntity) {
         isEntity = blocks[_blockID].isEntity;
     }
 
