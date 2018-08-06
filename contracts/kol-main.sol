@@ -8,7 +8,7 @@ pragma solidity ^0.4.24;
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../node_modules/openzeppelin-solidity/contracts/payment/PullPayment.sol";
 
-contract MyContract is Ownable {
+contract KOLogic is Ownable, PullPayment {
     
     constructor (uint8 _blockCreationValue) public {
         // constructor for contract
@@ -16,16 +16,8 @@ contract MyContract is Ownable {
     }
 
     // data structures needed for storage
-    struct Block{
-        bytes32 imageURL;
-        bytes32 description;
-        address blockOwner;
-        bool forSale;
-        uint256 price;
-    }
     
-    mapping(bytes32 => Block) public blocks;
-    mapping(bytes8 => bool) internal validUnis; 
+    mapping(bytes8 => bool) internal validUnis;
     uint8 blockCreationValue;
 
     event NewUniversity(bytes8 _name);
@@ -66,15 +58,47 @@ contract MyContract is Ownable {
 
     function createBlock(bytes32 _blockID) internal {
         blocks[_blockID] = Block(0,0,msg.sender,false,0);
+    }    
+}
+
+contract KOLstorage {
+
+    /*
+    TODO: create modifiers to limit functions so only application contract can edit them
+    */
+    constructor (address _appContract) public {
+        // constructor for contract
+        appContract = _appContract;
     }
 
-
-
-
-
-
-
-
+    struct Block{
+        bytes32 imageURL;
+        bytes32 description;
+        address blockOwner;
+        bool forSale;
+        uint256 price;
+        bool isEntity;
+    }
     
-    
+    mapping(bytes32 => Block) public blocks;
+
+    function newBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, uint256 _price) public returns (bool success) {
+        blocks[_blockID] = Block(_imageURL, _description, _blockOwner, false, _price, true);
+        success = true;
+    }
+
+    function updateBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, bool _forSale, uint256 _price) public returns (bool success) {
+        blocks[_blockID] = Block(_imageURL, _description, _blockOwner, _forSale, _price, true);
+        success = true;
+    }
+
+    function deleteBlock(bytes32 _blockID) public returns (bool success) {
+        blocks[_blockID].isEntity = false;
+        success = true;
+    }
+
+    function isEntity(bytes32 _blockID) public view returns (bool isEntity) {
+        isEntity = blocks[_blockID].isEntity;
+    }
+
 }
