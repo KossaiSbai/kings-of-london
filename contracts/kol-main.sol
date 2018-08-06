@@ -50,7 +50,9 @@ contract KOLogic is Ownable, PullPayment {
             require(msg.value > blockCreationValue);
         } 
 
-        require(blocks[blockID].forSale);
+        // block is for sale
+        require();
+        // value of transaction enough to buy
         require(msg.value > blocks[blockID].price);  
     }
 }
@@ -106,4 +108,15 @@ contract KOLstorage {
         isEntity = blocks[_blockID].isEntity;
     }
 
+    function getForSale(bytes32 _blockID) public onlyOwner  view returns (bool forSale) {
+        forSale = blocks[_blockID].forSale;
+    }
+
+    function getPrice(bytes32 _blockID) public onlyOwner  view returns (uint256 price) {
+        price = blocks[_blockID].price;
+    }
+
+    function getBlockOwner(bytes32 _blockID) public onlyOwner  view returns (address blockOwner) {
+        blockOwner = blocks[_blockID].blockOwner;
+    }
 }
