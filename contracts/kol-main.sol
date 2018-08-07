@@ -92,7 +92,7 @@ contract KOLogic is Ownable, PullPayment {
             require(msg.value >= s.getPrice(blockID), "Not enough ether to buy block.");
             
             address oldOwner = s.getBlockOwner(blockID);
-            s.updateBlock(blockID, _imageURL, _description, msg.sender, false, msg.value);
+            require(s.updateBlock(blockID, _imageURL, _description, msg.sender, false, msg.value), "Failed to update block.");
 
             // TODO: send money to necessary people
 
@@ -104,7 +104,7 @@ contract KOLogic is Ownable, PullPayment {
             uint256 _blockCreationValue = blockCreationValue;
             require(msg.value >= _blockCreationValue, "Not enough ether to create block.");
 
-            s.newBlock(blockID, _imageURL, _description, msg.sender, _blockCreationValue);
+            require(s.newBlock(blockID, _imageURL, _description, msg.sender, _blockCreationValue), "Failed to create new block.");
             // when new block is created, block is being bought from this contract.
             emit BlockBought(_x, _y, _uniName, this, msg.sender, msg.value);
             success = true;
@@ -132,6 +132,7 @@ contract KOLogic is Ownable, PullPayment {
         
         s.updateBlock(blockID, _imageURL, _description, blockOwner, _forSale, _price);
         emit BlockInformationUpdated(_x, _y, _uniName, _imageURL, _description, blockOwner, _forSale, _price);
+        success = true;
     }
 }
 
