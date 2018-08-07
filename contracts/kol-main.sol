@@ -1,24 +1,24 @@
 pragma solidity ^0.4.24; 
 
 /** 
-* @title Kings Of London DApp
-* @author Frederico Lacs
-* @audit Jardin Omidvaran
-**/
+  * @title Kings Of London DApp
+  * @author Frederico Lacs
+  * @audit Jardin Omidvaran
+ **/
 
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../node_modules/openzeppelin-solidity/contracts/payment/PullPayment.sol";
 
 contract KOLogic is Ownable, PullPayment {
-    constructor (uint256 _blockCreationValue, address _storageAddress) public {
-        blockCreationValue = _blockCreationValue;
-        emit UpdatedBlockCreationValue(_blockCreationValue);
+    constructor (uint256 _blockCreationPrice, address _storageAddress) public {
+        blockCreationPrice = _blockCreationPrice;
+        emit UpdatedBlockCreationValue(_blockCreationPrice);
         s = KOLstorage(_storageAddress);
         emit UpdatedStorageAddress(_storageAddress);
     }
 
     KOLstorage internal s;
-    uint256 internal blockCreationValue;
+    uint256 internal blockCreationPrice;
     mapping(string => bool) internal isValidUniversity;
 
     event NewValidUniversity (string _name);
@@ -44,9 +44,9 @@ contract KOLogic is Ownable, PullPayment {
         uint256 _price
     );
 
-    function setBlockCreationValue(uint256 _newBlockCreationValue) public onlyOwner {
-        blockCreationValue = _newBlockCreationValue;
-        emit UpdatedBlockCreationValue(_newBlockCreationValue);
+    function setBlockCreationPrice(uint256 _blockCreationPrice) public onlyOwner {
+        blockCreationPrice = _blockCreationPrice;
+        emit UpdatedBlockCreationValue(_blockCreationPrice);
     }
 
     function setStorageAddress(address _storageAddress) public onlyOwner {
@@ -94,17 +94,17 @@ contract KOLogic is Ownable, PullPayment {
             address oldOwner = s.getBlockOwner(blockID);
             require(s.updateBlock(blockID, _imageURL, _description, msg.sender, false, msg.value), "Failed to update block.");
 
-            // TODO: send money to necessary people
+            asyncTransfer(oldOwner, msg.value);
 
             emit BlockBought(_x, _y, _uniName, oldOwner, msg.sender, msg.value);
             success = true;
         }
         else{
             // created new variable to have it in scope and not read from blockchain twice
-            uint256 _blockCreationValue = blockCreationValue;
-            require(msg.value >= _blockCreationValue, "Not enough ether to create block.");
+            uint256 _blockCreationPrice = blockCreationPrice;
+            require(msg.value >= _blockCreationPrice, "Not enough ether to create block.");
 
-            require(s.newBlock(blockID, _imageURL, _description, msg.sender, _blockCreationValue), "Failed to create new block.");
+            require(s.newBlock(blockID, _imageURL, _description, msg.sender, _blockCreationPrice), "Failed to create new block.");
             // when new block is created, block is being bought from this contract.
             emit BlockBought(_x, _y, _uniName, this, msg.sender, msg.value);
             success = true;
