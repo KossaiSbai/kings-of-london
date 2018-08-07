@@ -19,7 +19,7 @@ contract KOLogic is Ownable, PullPayment {
     event NewBlock(uint256 _x, uint256 _y, string indexed _uniName);
     event UpdatedBlockCreationValue(uint256 value);
     event UpdatedStorageAddress(address newStorageAddress);
-    event BlockSuccessfullyBought(uint256 price);
+    event BlockSuccessfullyBought(uint256 price, address purchaser, uint256 xCoordinate, uint256 yCoordinate, string uni);
 
     constructor (uint256 _blockCreationValue, address _storageAddress) public {
         blockCreationValue = _blockCreationValue;
@@ -61,14 +61,16 @@ contract KOLogic is Ownable, PullPayment {
         if(s.getIsEntity(blockID)) {
             require(s.getForSale(blockID), "Block is not for sale.");
             require(msg.value >= s.getPrice(blockID), "Not enough ether to buy block.");
+            emit BlockSuccessfullyBought(msg.value, msg.sender, _x, _y , _uniName);
            
         } 
         else{
             require(msg.value >= blockCreationValue, "Not enough ether to create block.");
+            emit BlockSuccessfullyBought(msg.value, msg.sender, _x, _y , _uniName);
             
         }
     }
-     emit BlockSuccessfullyBought(msg.value);
+     
 }
 
 
