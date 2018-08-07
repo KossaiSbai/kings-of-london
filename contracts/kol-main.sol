@@ -22,7 +22,6 @@ contract KOLogic is Ownable, PullPayment {
     mapping(string => bool) internal isValidUniversity;
 
     event NewValidUniversity (string _name);
-    event InvalidUniversityAttempt (string _name);
     event UpdatedBlockCreationValue (uint256 value);
     event UpdatedStorageAddress (address newStorageAddress);
     event BlockBought (
@@ -64,13 +63,8 @@ contract KOLogic is Ownable, PullPayment {
      *   Maybe verify for valid universities in the frontend input?
      */
     function getBlockID(uint256 _x, uint256 _y, string _uniName) internal returns (bytes32 id) {
-        if(isValidUniversity[_uniName]){
-            id = keccak256(_x, ":", _y, "@", _uniName);
-        }
-        else{
-            emit InvalidUniversityAttempt(_uniName);
-        }
-        // returns 0 if not from a valid uni
+        require(isValidUniversity[_uniName], "Invalid University");
+        id = keccak256(_x, ":", _y, "@", _uniName);
     }
 
     function buyBlock (
