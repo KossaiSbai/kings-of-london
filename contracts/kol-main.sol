@@ -10,23 +10,39 @@ import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../node_modules/openzeppelin-solidity/contracts/payment/PullPayment.sol";
 
 contract KOLogic is Ownable, PullPayment {
-    
-    KOLstorage internal s;
-    uint256 internal blockCreationValue;
-    mapping(string => bool) internal isValidUniversity;
-
-    event NewValidUniversity(string _name);
-    event NewBlock(uint256 _x, uint256 _y, string indexed _uniName);
-    event UpdatedBlockCreationValue(uint256 value);
-    event UpdatedStorageAddress(address newStorageAddress);
-    event BlockSuccessfullyBought(uint256 price, address purchaser, uint256 xCoordinate, uint256 yCoordinate, string uni);
-
     constructor (uint256 _blockCreationValue, address _storageAddress) public {
         blockCreationValue = _blockCreationValue;
         emit UpdatedBlockCreationValue(_blockCreationValue);
         s = KOLstorage(_storageAddress);
         emit UpdatedStorageAddress(_storageAddress);
     }
+
+    KOLstorage internal s;
+    uint256 internal blockCreationValue;
+    mapping(string => bool) internal isValidUniversity;
+
+    event NewValidUniversity (string _name);
+    event InvalidUniversityAttempt (string _name);
+    event UpdatedBlockCreationValue (uint256 value);
+    event UpdatedStorageAddress (address newStorageAddress);
+    event BlockBought (
+        uint256 x, 
+        uint256 y, 
+        string indexed universityName, 
+        address indexed oldOwner, 
+        address indexed newOwner, 
+        uint256 price
+    );
+    event BlockInformationUpdated (
+        uint256 x, 
+        uint256 y, 
+        string indexed universityName, 
+        bytes32 _imageURL, 
+        bytes32 _description, 
+        address indexed _blockOwner, 
+        bool indexed _forSale, 
+        uint256 _price
+    );
 
     function setBlockCreationValue(uint256 _newBlockCreationValue) public onlyOwner {
         blockCreationValue = _newBlockCreationValue;
@@ -51,26 +67,72 @@ contract KOLogic is Ownable, PullPayment {
         if(isValidUniversity[_uniName]){
             id = keccak256(_x + ":" + _y + "@" + _uniName);
         }
+        else{
+            emit InvalidUniversityAttempt(_uniName);
+        }
         // returns 0 if not from a valid uni
     }
 
-    function buyBlock(uint _x, uint _y, string _uniName)  public payable {
+    function buyBlock (
+        uint256 _x, 
+        uint256 _y, 
+        string _uniName,
+        bytes32 _imageURL,
+        bytes32 _description
+    )
+        public 
+        payable 
+        returns (bool success)
+    {
         bytes32 blockID = getBlockID(_x, _y, _uniName);
 
         // check if block is already created
         if(s.getIsEntity(blockID)) {
             require(s.getForSale(blockID), "Block is not for sale.");
             require(msg.value >= s.getPrice(blockID), "Not enough ether to buy block.");
-            emit BlockSuccessfullyBought(msg.value, msg.sender, _x, _y , _uniName);
-           
-        } 
-        else{
-            require(msg.value >= blockCreationValue, "Not enough ether to create block.");
-            emit BlockSuccessfullyBought(msg.value, msg.sender, _x, _y , _uniName);
             
+            address oldOwner = s.getBlockOwner(blockID);
+            s.updateBlock(blockID, _imageURL, _description, msg.sender, false, msg.value);
+
+            // TODO: send money to necessary people
+
+            emit BlockBought(_x, _y, _uniName, oldOwner, msg.sender, msg.value);
+            success = true;
+        }
+        else{
+            // created new variable to have it in scope and not read from blockchain twice
+            uint256 _blockCreationValue = blockCreationValue;
+            require(msg.value >= _blockCreationValue, "Not enough ether to create block.");
+
+            s.newBlock(blockID, _imageURL, _description, msg.sender, _blockCreationValue);
+            // when new block is created, block is being bought from this contract.
+            emit BlockBought(_x, _y, _uniName, this, msg.sender, msg.value);
+            success = true;
         }
     }
-     
+
+    function updateBlock (
+        uint256 _x, 
+        uint256 _y, 
+        string _uniName,
+        bytes32 _imageURL, 
+        bytes32 _description, 
+        bool _forSale, 
+        uint256 _price
+    )
+        public
+        returns (bool success)
+    {
+        bytes32 blockID = getBlockID(_x, _y, _uniName);
+        
+        address blockOwner = s.getBlockOwner(blockID);
+        // Added admin access in case we need to change inappropriate content
+        require(msg.sender == blockOwner || msg.sender == owner, "Not block owner.");
+        require(_price > 0, "Can't put selling price lower than zero.");
+        
+        s.updateBlock(blockID, _imageURL, _description, blockOwner, _forSale, _price);
+        emit BlockInformationUpdated(_x, _y, _uniName, _imageURL, _description, blockOwner, _forSale, _price);
+    }
 }
 
 
