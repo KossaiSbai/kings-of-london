@@ -65,7 +65,7 @@ contract KOLogic is Ownable, PullPayment {
      */
     function getBlockID(uint256 _x, uint256 _y, string _uniName) internal returns (bytes32 id) {
         if(isValidUniversity[_uniName]){
-            id = keccak256(_x + ":" + _y + "@" + _uniName);
+            id = keccak256(_x, ":", _y, "@", _uniName);
         }
         else{
             emit InvalidUniversityAttempt(_uniName);
