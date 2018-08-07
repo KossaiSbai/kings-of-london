@@ -2,7 +2,8 @@ pragma solidity ^0.4.24;
 
 /** 
 * @title Kings Of London DApp
-* @author Frederico Lacs and Jard Binks
+* @author Frederico Lacs
+* @audit Jardin Omidvaran
 **/
 
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
@@ -10,91 +11,105 @@ import "../node_modules/openzeppelin-solidity/contracts/payment/PullPayment.sol"
 
 contract KOLogic is Ownable, PullPayment {
     
-    KOLstorage s;
+    KOLstorage internal s;
+    uint256 internal blockCreationValue;
+    mapping(string => bool) internal isValidUniversity;
 
-    constructor (uint8 _blockCreationValue, address storageContract) public {
-        // constructor for contract
+    event NewValidUniversity(string _name);
+    event NewBlock(uint256 _x, uint256 _y, string indexed _uniName);
+    event UpdatedBlockCreationValue(uint256 value);
+    event UpdatedStorageAddress(address newStorageAddress);
+
+    constructor (uint256 _blockCreationValue, address _storageAddress) public {
         blockCreationValue = _blockCreationValue;
-        s = storageContract;
+        emit UpdatedBlockCreationValue(_blockCreationValue);
+        s = KOLstorage(_storageAddress);
+        emit UpdatedStorageAddress(_storageAddress);
     }
 
-    // data structures needed for storage
-    
-    mapping(bytes8 => bool) internal validUnis;
-    uint8 blockCreationValue;
-
-    event NewUniversity(bytes8 _name);
-    event NewBlock(uint8 _x, uint8 _y, bytes8 indexed _uniName);
-    event UpdatedBlockCreationValue(uint8 indexed value);
-
-    function setBlockCreationValue(uint8 _newBlockCreationValue) public onlyOwner {
+    function setBlockCreationValue(uint256 _newBlockCreationValue) public onlyOwner {
         blockCreationValue = _newBlockCreationValue;
         emit UpdatedBlockCreationValue(_newBlockCreationValue);
     }
-    function addUniversity(bytes8 _name) public onlyOwner {
-        validUnis[_name] = true;
-        emit NewUniversity(_name);
+
+    function setStorageAddress(address _storageAddress) public onlyOwner {
+        s = KOLstorage(_storageAddress);
+        emit UpdatedStorageAddress(_storageAddress);
     }
 
-    function getBlockID(uint8 _x, uint _y, bytes8 _uniName) internal returns (bytes32 id) {
-        if(validUnis[_uniName]){
+    function addValidUniversity(string _name) public onlyOwner {
+        isValidUniversity[_name] = true;
+        emit NewValidUniversity(_name);
+    }
+
+    /*
+     *   Could have made this a pure function and added the uni verification somewhere else.
+     *   Maybe verify for valid universities in the frontend input?
+     */
+    function getBlockID(uint256 _x, uint256 _y, string _uniName) internal returns (bytes32 id) {
+        if(isValidUniversity[_uniName]){
             id = keccak256(_x + ":" + _y + "@" + _uniName);
         }
+        // returns 0 if not from a valid uni
     }
 
-    function buyBlock(uint8 _x, uint _y, bytes8 _uniName)  public payable {
+    function buyBlock(uint _x, uint _y, string _uniName)  public payable {
         bytes32 blockID = getBlockID(_x, _y, _uniName);
 
-        // if block doesn't exist yet
-        if() {
-            require(msg.value > blockCreationValue);
+        // check if block is already created
+        if(s.getIsEntity(blockID)) {
+            require(s.getForSale(blockID), "Block is not for sale.");
+            require(msg.value >= s.getPrice(blockID), "Not enough ether to buy block.");
         } 
-
-        // block is for sale
-        require();
-        // value of transaction enough to buy
-        require(msg.value > blocks[blockID].price);  
+        else{
+            require(msg.value >= blockCreationValue, "Not enough ether to create block.");
+        }
     }
 }
 
-contract KOLstorage {
 
+contract KOLstorage is Ownable {
     struct Block{
         bytes32 imageURL;
         bytes32 description;
         address blockOwner;
         bool forSale;
         uint256 price;
+        // If block is available, means it is not an entity
         bool isEntity;
     }
+    
     mapping(bytes32 => Block) internal blocks;
     
-    constructor () public {
-        owner = msg.sender;
-    }
-
-    address public owner;
-    event OwnershipTransfered(address indexed previousOwner, address indexed newOwner);
-
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
-
-    function transferOwnership(address newOwner) public onlyOwner {
-        require(newOwner != address(0));
-        emit OwnershipTransferred(owner, newOwner);
-        owner = newOwner;
-    }
-
-    function newBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, uint256 _price) public onlyOwner returns (bool success) {
-        require(blocks[_blockID].isEntity == false);
+    function newBlock (
+        bytes32 _blockID, 
+        bytes32 _imageURL, 
+        bytes32 _description, 
+        address _blockOwner, 
+        uint256 _price
+    ) 
+        public 
+        onlyOwner 
+        returns (bool success) 
+    {
+        require(blocks[_blockID].isEntity == false, "Block was already created.");
         blocks[_blockID] = Block(_imageURL, _description, _blockOwner, false, _price, true);
         success = true;
     }
 
-    function updateBlock(bytes32 _blockID, bytes32 _imageURL, bytes32 _description, address _blockOwner, bool _forSale, uint256 _price) public onlyOwner returns (bool success) {
-        require(blocks[_blockID].isEntity == true);
+    function updateBlock (
+        bytes32 _blockID, 
+        bytes32 _imageURL, 
+        bytes32 _description, 
+        address _blockOwner, 
+        bool _forSale, 
+        uint256 _price
+    ) 
+        public 
+        onlyOwner 
+        returns (bool success) 
+    {
+        require(blocks[_blockID].isEntity == true, "Block was not created, can't be updated.");
         blocks[_blockID] = Block(_imageURL, _description, _blockOwner, _forSale, _price, true);
         success = true;
     }
@@ -104,19 +119,28 @@ contract KOLstorage {
         success = true;
     }
 
-    function isEntity(bytes32 _blockID) public onlyOwner  view returns (bool isEntity) {
-        isEntity = blocks[_blockID].isEntity;
+    // getters
+    function getImageURL(bytes32 _blockID) public onlyOwner view returns (bytes32 imageURL) {
+        imageURL = blocks[_blockID].imageURL;
     }
 
-    function getForSale(bytes32 _blockID) public onlyOwner  view returns (bool forSale) {
+    function getDescription(bytes32 _blockID) public onlyOwner view returns (bytes32 description) {
+        description = blocks[_blockID].description;
+    }
+
+    function getBlockOwner(bytes32 _blockID) public onlyOwner view returns (address blockOwner) {
+        blockOwner = blocks[_blockID].blockOwner;
+    }
+
+    function getForSale(bytes32 _blockID) public onlyOwner view returns (bool forSale) {
         forSale = blocks[_blockID].forSale;
     }
 
-    function getPrice(bytes32 _blockID) public onlyOwner  view returns (uint256 price) {
+    function getPrice(bytes32 _blockID) public onlyOwner view returns (uint256 price) {
         price = blocks[_blockID].price;
     }
 
-    function getBlockOwner(bytes32 _blockID) public onlyOwner  view returns (address blockOwner) {
-        blockOwner = blocks[_blockID].blockOwner;
+    function getIsEntity(bytes32 _blockID) public onlyOwner view returns (bool isEntity) {
+        isEntity = blocks[_blockID].isEntity;
     }
 }
