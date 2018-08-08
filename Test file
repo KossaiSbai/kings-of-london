@@ -1,0 +1,27 @@
+const Migrations = artifacts.require('./Migrations.sol');
+contract('Migrations', function([owner])
+{
+let migrations
+beforeEach('setup contract',async function(){
+  migrations = await Migrations.new()
+})
+
+it("owner",async function()
+{
+assert.equal(await migrations.owner(),owner)
+})
+
+
+it("sum",async function()
+{
+  var result = await migrations.sum.call(1,2);
+  assert.equal(result,3);
+})
+
+it("delete",async function()
+{
+  var success = await migrations.deleteBlock.call('57136f0a3d87e187624c0adb30ff2fbdcf47ac9613b1ba46b870e57fa3b5f89c');
+  assert.equal(success,true);
+})
+
+})
