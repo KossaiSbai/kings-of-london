@@ -1,0 +1,45 @@
+pragma solidity ^0.4.23;
+
+contract Migrations{
+  address public owner;
+  uint public last_completed_migration;
+  struct Block{
+       bytes32 imageURL;
+       bytes32 description;
+       address blockOwner;
+       bool forSale;
+       uint256 price;
+       // If block is available, means it is not an entity
+       bool isEntity;
+   }
+
+   mapping(bytes32 => Block) internal blocks;
+
+  constructor() public {
+    owner = msg.sender;
+  }
+
+  modifier restricted() {
+    require (msg.sender==owner);
+    _;
+  }
+
+  function setCompleted(uint completed) public {
+    last_completed_migration = completed;
+  }
+
+  function upgrade(address new_address) public restricted {
+    Migrations upgraded = Migrations(new_address);
+    upgraded.setCompleted(last_completed_migration);
+  }
+
+  function sum(uint a, uint b) restricted returns (uint)
+  {
+   return a+b;
+  }
+
+  function deleteBlock(bytes32 _blockID) public restricted returns (bool success) {
+        blocks[_blockID].isEntity = false;
+        success = true;
+    }
+}
