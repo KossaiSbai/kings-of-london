@@ -1,0 +1,95 @@
+const KOLStorage = artifacts.require('./KOLStorage.sol');
+contract('KOLStorage', function([owner,accounts])
+{
+let kolStorage
+beforeEach('setup contract',async function(){
+  kolStorage = await KOLStorage.new()
+})
+
+it("owner",async function()
+{
+assert.equal(await kolStorage.owner(),owner)
+})
+
+it("delete",async function()
+{
+  var success = await kolStorage.deleteBlock.call( "0xca35b7d915458ef540ade6068dfe2f44e8fa733c00000000000000000000000");
+  assert.equal(success,true);
+})
+
+it("new Block",async function()
+{
+  var success = await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
+  'Pokemon',accounts[0],120);
+  assert.equal(success,true);
+})
+
+it("invalid new Block",async function()
+{
+  var success = await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
+  'Pokemon',accounts[0]);
+
+})
+
+it("URL",async function()
+{
+  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
+  'Pokemon',accounts[0],120);
+var url = await kolStorage.getImageURL.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
+assert.notEqual(String(url),"")
+
+})
+
+it("URL2",async function()
+{
+  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
+  'Pokemon',accounts[0],120);
+var url = await kolStorage.getImageURL.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
+assert.notEqual(String(url),null)
+
+})
+
+
+it("Description",async function()
+{
+  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
+  'Pokemon',accounts[0],120);
+var description = await kolStorage.getDescription.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
+assert.notEqual(String(description), "")
+
+})
+
+it("Description2",async function()
+{
+  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
+  'Pokemon',accounts[0],120);
+var description = await kolStorage.getDescription.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
+assert.notEqual(String(description),  null)
+
+})
+
+it("price",async function()
+{
+  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
+  'Pokemon',accounts[0],120);
+var price = await kolStorage.getPrice.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
+assert.notEqual(Number(price),  null)
+})
+
+it("price2",async function()
+{
+  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
+  'Pokemon',accounts[0],120);
+var price = await kolStorage.getPrice.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
+assert.isFalse(isNaN(Number(price)))
+})
+
+})
