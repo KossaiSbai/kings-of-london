@@ -1,0 +1,28 @@
+const KOLLogic = artifacts.require('./KOLLogic.sol');
+contract('KOLLogic', function([owner,accounts])
+{
+let kolLogic
+beforeEach('setup contract',async function(){
+  var _storageAddress = accounts[0];
+  var blockCreationPrice = 125;
+  kolLogic = await KOLLogic.new(_storageAddress,blockCreationPrice);
+})
+
+it("new Uni",async function()
+{
+return await kolLogic.addValidUniversity.call("KCL")
+})
+
+it("new Uni Fail",async function()
+{
+return await kolLogic.addValidUniversity.call()
+})
+
+
+it("Set Price",async function()
+{
+return kolLogic.setBlockCreationPrice.call(25)
+
+})
+
+})
