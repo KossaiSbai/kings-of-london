@@ -1,28 +1,52 @@
-const KOLLogic = artifacts.require('./KOLLogic.sol');
+const KOLLogic = artifacts.require('./KOLLogic.sol'); // extracts the KOLLogic contract. 
 contract('KOLLogic', function([owner,accounts])
 {
-let kolLogic
+let kolLogic // This variable stands for the logic contract created before each test. 
 beforeEach('setup contract',async function(){
-  var _storageAddress = accounts[0];
+  var _storageAddress = accounts[0]; 
   var blockCreationPrice = 125;
-  kolLogic = await KOLLogic.new(_storageAddress,blockCreationPrice);
+  kolLogic = await KOLLogic.new(_storageAddress,blockCreationPrice); // creates a new KOLogic contrat with the passed in parameters. 
 })
 
+// Successfully adds a the passed in uni to the list of the valid unis. 
 it("new Uni",async function()
 {
 return await kolLogic.addValidUniversity.call("KCL")
 })
 
+// Fails to add a valid uni because of an incorrect number of arguments. 
 it("new Uni Fail",async function()
 {
 return await kolLogic.addValidUniversity.call()
 })
 
+// Fails to add a valid uni because the passed in parameter is an invalid string.
+it("new Uni Fail 2",async function()
+{
+return await kolLogic.addValidUniversity.call(KCL)
+})
 
+// Successfully sets the block creation price
 it("Set Price",async function()
 {
 return kolLogic.setBlockCreationPrice.call(25)
 
 })
+
+// Fails to set the block creation price because the passed in parameter is of boolean type. 
+it("Set Price Fail",async function()
+{
+return kolLogic.setBlockCreationPrice.call(true)
+
+})
+
+// Fails to set the block creation price because of an invalid number of arguments. 
+it("Set Price Fail 2",async function()
+{
+return kolLogic.setBlockCreationPrice.call()
+
+})
+
+
 
 })
