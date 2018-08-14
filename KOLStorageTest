@@ -1,95 +1,144 @@
-const KOLStorage = artifacts.require('./KOLStorage.sol');
+
+const KOLStorage = artifacts.require('./KOLStorage.sol'); // extracts the KOLStorage contract. 
 contract('KOLStorage', function([owner,accounts])
 {
-let kolStorage
+let kolStorage // this variable stands for the storage contract created before each test. 
+let block // this variable stands for the block being created before each test. 
 beforeEach('setup contract',async function(){
-  kolStorage = await KOLStorage.new()
+  kolStorage = await KOLStorage.new() 
+  block = await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
+  'Pokemon',accounts[0],120); // creates a new block with the passed in parameters. 
 })
 
-it("owner",async function()
+//Asserts that a block has an owner. 
+it("The contract has a owner",async function()
 {
 assert.equal(await kolStorage.owner(),owner)
 })
 
-it("delete",async function()
+
+// Successfully deletes a block. 
+it("A block is successfully deleted",async function()
 {
   var success = await kolStorage.deleteBlock.call( "0xca35b7d915458ef540ade6068dfe2f44e8fa733c00000000000000000000000");
   assert.equal(success,true);
 })
 
-it("new Block",async function()
+
+// Invalid deletion of a block because the parameter inside is not a valid string. 
+it("A block is unsuccessfully deleted",async function()
 {
-  var success = await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
-  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
-  'Pokemon',accounts[0],120);
-  assert.equal(success,true);
+  await kolStorage.deleteBlock.call(ca35b7d915458ef540ade6068dfe2f44e8fa733c00000000000000000000000);
+}
+
+
+// A new block is successfully created. The variable inside called "block" refers to the variabke created in the before ecah function.  
+it("A new block is successfully created",async function()
+{
+  assert.equal(block,true);
 })
 
-it("invalid new Block",async function()
+
+// Invalid creation of a new block due to an incorrect number of arguments. 
+it("invalid new Block",async function() 
 {
-  var success = await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+   await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
   'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
   'Pokemon',accounts[0]);
-
 })
 
+
+// Invalid creation of a new block due to a number parameter too big for the size supported by uint 256
+it("invalid new Block 2",async function() 
+{
+   await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
+  'Pokemon',accounts[0],1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000);
+})
+
+
+// Asserts that the url returned after a block being created is not empty string
 it("URL",async function()
 {
-  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
-  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
-  'Pokemon',accounts[0],120);
+
 var url = await kolStorage.getImageURL.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
 assert.notEqual(String(url),"")
 
 })
 
-it("URL2",async function()
+// Asserts that the url returned after a block being created is not null
+it("URL 2",async function()
 {
-  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
-  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
-  'Pokemon',accounts[0],120);
 var url = await kolStorage.getImageURL.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
 assert.notEqual(String(url),null)
-
 })
 
 
+// Asserts that the url returned after a block being created is not of type number
+it("URL 3",async function()
+{  
+var url = await kolStorage.getImageURL.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
+assert.notEqual(typeof url,"number")
+})
+
+
+// Asserts that the description returned after a block being created is not of an empty string
 it("Description",async function()
 {
-  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
-  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
-  'Pokemon',accounts[0],120);
 var description = await kolStorage.getDescription.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
 assert.notEqual(String(description), "")
-
 })
 
+// Asserts that the description returned after a block being created is not of null.
 it("Description2",async function()
 {
-  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
-  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
-  'Pokemon',accounts[0],120);
+
 var description = await kolStorage.getDescription.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
 assert.notEqual(String(description),  null)
 
 })
+]
+// Asserts that the description returned after a block being created is of type string.
+it("Description3",async function()
+{
 
+var description = await kolStorage.getDescription.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
+assert.equal(typeof description,"string")
+
+})
+
+// Asserts that the price returned after a block being created is not null.
 it("price",async function()
 {
-  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
-  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
-  'Pokemon',accounts[0],120);
+
 var price = await kolStorage.getPrice.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
 assert.notEqual(Number(price),  null)
 })
 
+// Asserts that the price returned after a block being created is a number. 
 it("price2",async function()
 {
-  await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
-  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
-  'Pokemon',accounts[0],120);
+
 var price = await kolStorage.getPrice.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
 assert.isFalse(isNaN(Number(price)))
+})
+
+// Asserts that the price returned after a block being created is not of boolean type.  
+it("price3",async function()
+{
+var price = await kolStorage.getPrice.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000")
+assert.notEqual(typeof price , "boolean")
+})
+
+// Fails to return the price because the parameter passed in is too big in size for uint 256.
+it("price4",async function() 
+{
+  var success = await kolStorage.newBlock.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000",
+  'https://www.google.fr/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjU963S1t_cAhUBVhoKHQ31DuIQjRx6BAgBEAU&url=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPok%25C3%25A9mon&psig=AOvVaw2l3zlQJTgFI2C_Z7uB5l9k&ust=1533894017915937',
+  'Pokemon',accounts[0],1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000);
+var price = await kolStorage.getPrice.call("0xca35b7d915458ef540ade6068dfe2f44e8fa733c000000000000000000000000");
+
 })
 
 })
